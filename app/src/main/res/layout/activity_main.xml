@@ -1,15 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
-    <cn.wang.refresh.ptc.scrollrulerview.ScrollRulerLayout
-        android:id="@+id/ruler_view"
-        android:layout_gravity="center"
-        android:layout_width="match_parent"
-        android:layout_height="54dp" />
+   <Button
+       android:id="@+id/btn1"
+       android:text="RulerView"
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content" />
+    <Button
+        android:id="@+id/btn2"
+       android:text="模拟网络数据"
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content" />
 
-</android.support.constraint.ConstraintLayout>
+</LinearLayout>

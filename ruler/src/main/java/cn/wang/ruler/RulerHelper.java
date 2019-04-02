@@ -1,22 +1,21 @@
-package cn.wang.refresh.ptc.scrollrulerview;
-
-import android.util.Log;
+package cn.wang.ruler;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Created to :
+ * Created to : {@link RulerView}的帮助类
+ *
+ * GitHub -> https://github.com/WangcWj/AndroidScrollRuler
+ * 提交issues联系作者.
  *
  * @author WANG
  * @date 2019/3/21
  */
 public class RulerHelper {
 
-    private int start = 0;
-    private int count = 0;
     private int currentLine = -1;
-    private int add = 500;
+    private int offSet = 500;
     private int lineNumbers;
     private List<Integer> mPoints;
     private int mCenterPointX;
@@ -53,12 +52,12 @@ public class RulerHelper {
         return false;
     }
 
-    public void setScope(int start, int count) {
-        this.start = start;
-        this.count = count;
-        lineNumbers = (count - start) / (add / 10);
-        for (int i = start; i <= count; i += add) {
-            Log.e("WANG", "RulerHelper.setScope." + i);
+    public void setScope(int start, int count,int offSet) {
+        if(offSet != 0) {
+            this.offSet = offSet;
+        }
+        lineNumbers = (count - start) / (this.offSet / 10);
+        for (int i = start; i <= count; i += this.offSet) {
             texts.add(String.valueOf(i));
         }
     }
@@ -141,23 +140,11 @@ public class RulerHelper {
         return texts.size() == mPoints.size();
     }
 
-    /*
-    * RulerHelper.addPoint.x0
-2019-03-25 15:54:02.023 19064-19064/? E/WANG: RulerHelper.addPoint.x120
-2019-03-25 15:54:02.023 19064-19064/? E/WANG: RulerHelper.addPoint.x240
-2019-03-25 15:54:02.023 19064-19064/? E/WANG: RulerHelper.addPoint.x360
-2019-03-25 15:54:02.023 19064-19064/? E/WANG: RulerHelper.addPoint.x480
-2019-03-25 15:54:02.024 19064-19064/? E/WANG: RulerHelper.addPoint.x600
-2019-03-25 15:54:02.024 19064-19064/? E/WANG: RulerHelper.addPoint.x720
-2019-03-25 15:54:02.024 19064-19064/? E/WANG: RulerHelper.addPoint.x840
-2019-03-25 15:54:02.024 19064-19064/? E/WANG: RulerHelper.addPoint.x960
-2019-03-25 15:54:02.024 19064-19064/? E/WANG: RulerHelper.addPoint.x1080
-2019-03-25 15:54:02.025 19064-19064/? E/WANG: RulerHelper.addPoint.x1200
-2019-03-25 15:54:02.025 19064-19064/? E/WANG: RulerHelper.addPoint.x1320
-2019-03-25 15:54:02.025 19064-19064/? E/WANG: RulerHelper.addPoint.x1440
-    *
-    *
-    *
-    *
-    * */
+    public void destroy(){
+        mPoints.clear();
+        texts.clear();
+        mPoints = null;
+        texts = null;
+        scrollChange = null;
+    }
 }

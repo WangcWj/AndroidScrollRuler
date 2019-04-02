@@ -1,4 +1,4 @@
-package cn.wang.refresh.ptc.scrollrulerview;
+package cn.wang.ruler;
 
 import android.content.Context;
 import android.graphics.Canvas;
@@ -10,8 +10,9 @@ import android.widget.ImageView;
 import android.widget.Toast;
 
 /**
- * Created to :
- *
+ * Created to : RulerView的载体.
+ * GitHub -> https://github.com/WangcWj/AndroidScrollRuler
+ * 提交issues联系作者.
  * @author WANG
  * @date 2019/3/21
  */
@@ -102,9 +103,9 @@ public class ScrollRulerLayout extends ViewGroup implements ScrollSelected {
         addView(mCenterPointer);
     }
 
-    public void setScope(int start, int end) {
+    public void setScope(int start, int end,int offSet) {
         if (null != mRulerView) {
-            mRulerView.setScope(start, end);
+            mRulerView.setScope(start, end,offSet);
         }
     }
 
@@ -125,6 +126,14 @@ public class ScrollRulerLayout extends ViewGroup implements ScrollSelected {
         layoutParams.rightMargin = right;
         layoutParams.bottomMargin = bottom;
         mRulerView.setLayoutParams(layoutParams);
+    }
+
+    @Override
+    protected void onDetachedFromWindow() {
+        mRulerView.destroy();
+        mRulerView = null;
+        mCenterPointer = null;
+        super.onDetachedFromWindow();
     }
 
     private int dp2px(float dp) {

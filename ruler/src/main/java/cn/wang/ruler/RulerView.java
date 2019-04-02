@@ -1,4 +1,4 @@
-package cn.wang.refresh.ptc.scrollrulerview;
+package cn.wang.ruler;
 
 import android.content.Context;
 import android.graphics.Canvas;
@@ -7,7 +7,6 @@ import android.graphics.Paint;
 import android.graphics.Rect;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.VelocityTracker;
 import android.view.View;
@@ -20,37 +19,116 @@ import android.widget.Scroller;
  * 1.遇到的问题是怎么让他滚动?
  * 2.滚动的时候绘制的内容不会错乱掉?
  * 3.怎么判断滑动的边界?
+ * 4.怎么让它Fling?
+ * 5.fling之后怎么去判断中间坐标的位置?
+ *
+ * GitHub -> https://github.com/WangcWj/AndroidScrollRuler
+ * 提交issues联系作者.
  *
  * @author WANG
  * @date 2019/3/21
  */
 public class RulerView extends View implements ScrollChange {
 
+    /**
+     * 帮助类,帮助计算或者存储一些数据.
+     */
     private RulerHelper mRulerHelper;
-    private Paint mLinePaint;
-    private Paint mTextPaint;
-    private int mLineSpace;
-    private int mSmallLineHeight;
-    private int mLongLineHeight;
-    private int mLineWidth;
-    private int dpFor05;
-    private int dpFor14;
-    private Rect mRect;
-    private int currentIndex = 0;
-    private Scroller mScroller;
-    private int mCountWidth;
-    private int mMarginLeft = -1;
-    private int mPaddingRight = -1;
-    private int mCountRange = -1;
-    private float mPreDistance = -1;
-    private ScrollSelected scrollSelected;
-    private boolean mPressUp = false;
-    private boolean mPressDown = false;
-    private boolean isFlaging = false;
-    private int mMinVelocity;
 
+    /**
+     * 这个 负责平缓滑动
+     */
+    private Scroller mScroller;
+
+    /**
+     * 每次滑到长刻度的时候 会调用一次
+     */
+    private ScrollSelected scrollSelected;
+
+    /**
+     * ...自行百度一下
+     */
     private VelocityTracker velocityTracker;
 
+    /**
+     * 花刻度的Paint
+     */
+    private Paint mLinePaint;
+
+    /**
+     * 画文本的
+     */
+    private Paint mTextPaint;
+
+    /**
+     * 每个刻度之间的间距 dp
+     */
+    private int mLineSpace;
+
+    /**
+     * 小刻度的高度 dp
+     */
+    private int mSmallLineHeight;
+
+    /**
+     * 长刻度的高度 dp
+     */
+    private int mLongLineHeight;
+
+    /**
+     * 每根线的宽度 dp
+     */
+    private int mLineWidth;
+
+    /**
+     * 每个矩形用一个Rect去画,因为之前用line去画的话发现宽度会减少一半.
+     */
+    private Rect mRect;
+
+    /**
+     * 一个下标计数器,从集合中取出每个下标对应的Text值.
+     */
+    private int mTextIndex = 0;
+
+    /**
+     * 所有刻度+padding+margin的总px长度.
+     */
+    private int mCountWidth;
+
+    /**
+     * 出去当前屏幕之外的剩余的px长度.
+     */
+    private int mCountRange = -1;
+
+    /**
+     * 也就是过滤一下 不会那么频繁的去调用而已.
+     */
+    private float mPreDistance = -1;
+
+    /**
+     * 说明现在的操作是手指抬起之后.
+     */
+    private boolean mPressUp = false;
+
+    /**
+     * 表示目前处于fling的滑动中.
+     */
+    private boolean isFling = false;
+
+    /**
+     * x轴的最小速率.
+     */
+    private int mMinVelocity;
+
+    /**
+     * 点击事件的初始x坐标.
+     */
+    float startX;
+
+    private int mMarginLeft = -1;
+    private int mPaddingRight = -1;
+    private int dpFor05;
+    private int dpFor14;
 
     public RulerView(Context context) {
         super(context);
@@ -68,8 +146,8 @@ public class RulerView extends View implements ScrollChange {
     }
 
     private void init(Context context) {
-        mRulerHelper = new RulerHelper(this);
         initDistanceForDp();
+        mRulerHelper = new RulerHelper(this);
         mTextPaint = new Paint();
         mTextPaint.setAntiAlias(true);
         mTextPaint.setTextSize(dp2px(10));
@@ -83,10 +161,9 @@ public class RulerView extends View implements ScrollChange {
         mLinePaint.setColor(Color.parseColor("#dddddd"));
 
         mRect = new Rect();
-
         mScroller = new Scroller(context);
-        velocityTracker = VelocityTracker.obtain();
 
+        velocityTracker = VelocityTracker.obtain();
         ViewConfiguration viewConfiguration = ViewConfiguration.get(context);
         mMinVelocity = viewConfiguration.getScaledMinimumFlingVelocity();
 
@@ -101,21 +178,38 @@ public class RulerView extends View implements ScrollChange {
         dpFor14 = dp2px(14);
     }
 
-    public void setScope(int start, int end) {
-        mRulerHelper.setScope(start, end);
+    /**
+     * 设置刻度尺的范围, 比如: 100 - 2000
+     * @param start
+     * @param end
+     */
+    public void setScope(int start, int end,int offSet) {
+        mRulerHelper.setScope(start, end,offSet);
         int counts = mRulerHelper.getCounts();
         mCountWidth = counts * mLineSpace + counts * mLineWidth;
         invalidate();
     }
 
+    /**
+     * 设置当前刻度初始化的位置 你也可以自定义
+     * @param text
+     */
     public void setCurrentItem(String text) {
         mRulerHelper.setCurrentItem(text);
     }
 
+    /**
+     * 获取当前指针停留的那个长刻度的位置.
+     * @return
+     */
     public String getCurrentText() {
         return mRulerHelper.getCurrentText();
     }
 
+    /**
+     * 设置滑动选中监听,滑动中不会有监听,有需要可以自行添加.
+     * @param scrollSelected
+     */
     public void setScrollSelected(ScrollSelected scrollSelected) {
         this.scrollSelected = scrollSelected;
     }
@@ -149,8 +243,12 @@ public class RulerView extends View implements ScrollChange {
         }
     }
 
+    /**
+     * 画刻度
+     * @param canvas
+     */
     private void drawRuler(Canvas canvas) {
-        currentIndex = 0;
+        mTextIndex = 0;
         for (int index = 0; index <= mRulerHelper.getCounts(); index++) {
             boolean longLine = mRulerHelper.isLongLine(index);
             int lineCount = mLineWidth * index;
@@ -158,13 +256,12 @@ public class RulerView extends View implements ScrollChange {
             mRect.top = getStartY(longLine);
             mRect.right = mRect.left + mLineWidth;
             mRect.bottom = getEndY();
-
             if (longLine) {
                 if (!mRulerHelper.isFull()) {
                     mRulerHelper.addPoint(mRect.left);
                 }
-                String text = mRulerHelper.getTextByIndex(currentIndex);
-                currentIndex++;
+                String text = mRulerHelper.getTextByIndex(mTextIndex);
+                mTextIndex++;
                 canvas.drawText(text, mRect.centerX(), getMeasuredHeight() - dpFor14, mTextPaint);
             }
             canvas.drawRect(mRect, mLinePaint);
@@ -172,6 +269,12 @@ public class RulerView extends View implements ScrollChange {
         }
     }
 
+    /**
+     * 首先你得知道矩形是怎么画的,left right top  bottom.
+     * 了解之后就明白这个值是怎么计算的了.
+     * @param isLong
+     * @return
+     */
     private int getStartY(boolean isLong) {
         if (isLong) {
             return getMeasuredHeight() - mLongLineHeight - dpFor05;
@@ -180,11 +283,13 @@ public class RulerView extends View implements ScrollChange {
         }
     }
 
+    /**
+     * 跟上面一样的道理
+     * @return
+     */
     private int getEndY() {
         return getMeasuredHeight() - dpFor05;
     }
-
-    float startX;
 
     /**
      * event.getRawX() 是点击的view相对于屏幕左上角(0,0)的x坐标.
@@ -199,39 +304,33 @@ public class RulerView extends View implements ScrollChange {
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
                 mScroller.forceFinished(true);
-                mPressDown = true;
                 mPressUp = false;
-                isFlaging = false;
+                isFling = false;
                 startX = event.getX();
                 break;
             case MotionEvent.ACTION_MOVE:
-                if (mPressDown) {
-                    mPressUp = false;
-                    float distance = event.getX() - startX;
-                    if (mPreDistance != distance) {
-                        doScroll((int) -distance, 0, 0);
-                        invalidate();
-                    }
-                    startX = event.getX();
+                mPressUp = false;
+                float distance = event.getX() - startX;
+                if (mPreDistance != distance) {
+                    doScroll((int) -distance, 0, 0);
+                    invalidate();
                 }
+                startX = event.getX();
                 break;
             case MotionEvent.ACTION_UP:
             case MotionEvent.ACTION_CANCEL:
                 mPressUp = true;
-                mPressDown = false;
                 velocityTracker.computeCurrentVelocity(1000);
                 float xVelocity = velocityTracker.getXVelocity();
                 if (Math.abs(xVelocity) >= mMinVelocity) {
-                    isFlaging = true;
+                    isFling = true;
                     int finalX = mScroller.getCurrX();
                     int centerPointX = mRulerHelper.getCenterPointX();
                     int velocityX = (int) (xVelocity * 0.35);
-                    Log.e("WANG","RulerView.fling........."+centerPointX );
                     mScroller.fling(finalX, 0, -velocityX, 0, -centerPointX, mCountRange + centerPointX, 0, 0);
                     invalidate();
                 } else {
-                    isFlaging = false;
-                    Log.e("WANG", "RulerView.onTouchEvent.");
+                    isFling = false;
                     scrollFinish();
                 }
                 velocityTracker.clear();
@@ -242,9 +341,11 @@ public class RulerView extends View implements ScrollChange {
         return true;
     }
 
+    /**
+     * 滑动停止之后重新定位
+     */
     public void scrollFinish() {
         int finalX = mScroller.getFinalX();
-
         int centerPointX = mRulerHelper.getCenterPointX();
         int currentX = centerPointX + finalX;
         int scrollDistance = mRulerHelper.getScrollDistance(currentX);
@@ -268,9 +369,9 @@ public class RulerView extends View implements ScrollChange {
     @Override
     public void computeScroll() {
         if (mScroller.computeScrollOffset()) {
-            if (mScroller.getCurrX() == mScroller.getFinalX() && mPressUp && isFlaging) {
+            if (mScroller.getCurrX() == mScroller.getFinalX() && mPressUp && isFling) {
                 mPressUp = false;
-                isFlaging = false;
+                isFling = false;
                 scrollFinish();
             }
             scrollTo(mScroller.getCurrX(), 0);
@@ -279,11 +380,14 @@ public class RulerView extends View implements ScrollChange {
         super.computeScroll();
     }
 
-    @Override
-    protected void onDetachedFromWindow() {
+    /**
+     * 回收一些资源吧,在{@link View#onDetachedFromWindow()}
+     */
+    public void destroy(){
         velocityTracker.recycle();
         velocityTracker = null;
-        super.onDetachedFromWindow();
+        mRulerHelper.destroy();
+        scrollSelected = null;
     }
 
     private int dp2px(float dp) {
