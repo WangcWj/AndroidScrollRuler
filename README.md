@@ -1,5 +1,5 @@
 # AndroidScrollRuler
-自定义View实现跟随手指滚动的刻度尺，实现了类似SeekBar的滑动选中效果。[项目地址，欢迎star！](<https://github.com/WangcWj/AndroidScrollRuler>)
+自定义View实现跟随手指滚动的刻度尺，实现了类似SeekBar的滑动选中效果。[项目解析](<https://blog.csdn.net/jsonChumpKlutz/article/details/88973025>)
 
 **UI图：**![](<https://raw.githubusercontent.com/WangcWj/image-folder/master/ruler.png>)
 
