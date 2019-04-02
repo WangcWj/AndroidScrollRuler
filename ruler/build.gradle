@@ -1,4 +1,5 @@
 apply plugin: 'com.android.library'
+apply plugin: 'com.novoda.bintray-release'
 
 android {
     compileSdkVersion 28
@@ -33,11 +34,20 @@ dependencies {
 
     implementation 'com.android.support:appcompat-v7:28.0.0'
     implementation 'com.android.support.constraint:constraint-layout:1.1.3'
-    testImplementation 'junit:junit:4.12'
-    androidTestImplementation 'com.android.support.test:runner:1.0.2'
-    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
+}
 
-    //WeRouter
-    annotationProcessor 'cn.wang.werouter:compiler:1.0.0'
-    implementation 'cn.wang.werouter:api:1.0.0'
+publish {
+    repoName = 'AndroidScrollRuler'//不指明，默认是上传到maven,指明的话这里的名字需要和你创建的仓库的名字一样
+    userOrg = 'wangchaochao'//bintray.com你的用户名
+    groupId = 'cn.wang.view'//jcenter上的路径
+    artifactId = 'ruler'//项目名称
+    publishVersion = '1.0.0'//版本号
+    desc = 'Android自定义View实现滑动的刻度尺'//描述，不重要
+    website = 'https://github.com/WangcWj/AndroidScrollRuler'//网站，不重要；尽量模拟github上的地址，例如我这样的；当然你有地址最好了
+}
+
+tasks.withType(Javadoc) {
+    options.addStringOption('Xdoclint:none', '-quiet')
+    options.addStringOption('encoding', 'UTF-8')
+    options.addStringOption('charSet', 'UTF-8')
 }

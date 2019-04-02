@@ -3,9 +3,12 @@ package cn.wang.ruler;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 
-import cn.router.werouter.annotation.Router;
-
-@Router(path = "native://RulerActivity")
+/**
+ * @author WANG
+ *  GitHub -> https://github.com/WangcWj/AndroidScrollRuler
+ *
+ *  提交issues联系作者.
+ */
 public class RulerActivity extends AppCompatActivity {
     ScrollRulerLayout rulerView;
     @Override

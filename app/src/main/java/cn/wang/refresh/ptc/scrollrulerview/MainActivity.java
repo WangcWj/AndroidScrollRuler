@@ -1,10 +1,12 @@
 package cn.wang.refresh.ptc.scrollrulerview;
 
+import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 
 import cn.router.api.router.WeRouter;
+import cn.wang.ruler.RulerActivity;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -16,8 +18,8 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.btn1).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //跨module通讯的路由 这里就小试一下
-                WeRouter.getInstance().build("native://RulerActivity").navigation(MainActivity.this);
+                Intent intent = new Intent(MainActivity.this,RulerActivity.class);
+                startActivity(intent);
             }
         });
     }

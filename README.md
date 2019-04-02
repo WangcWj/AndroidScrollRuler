@@ -1,6 +1,14 @@
 # AndroidScrollRuler
-####一 功能：
+自定义View实现跟随手指滚动的刻度尺，实现了类似SeekBar的滑动选中效果。[项目地址，欢迎star！](<https://github.com/WangcWj/AndroidScrollRuler>)
 
-自定义View实现跟随手指滚动的刻度尺，实现了类似SeekBar的滑动选中效果。通过设置最小值跟最大值的范围，然后选择offset值，ScrollRuler将根据这些数据去计算出需要几个小刻度和几个大刻度，每个大刻度上面显示当前所表示的值。指针停留在View的中心坐标，只会停留再大刻度上面，当滑动停止后，会根据四舍五入去选择自动滑动到那个刻度上面。支持范围越界回弹，支持设置默认值。
+**UI图：**![](<https://raw.githubusercontent.com/WangcWj/image-folder/master/ruler.png>)
+
+**功能：**
+
+- 通过设置最小值跟最大值的范围，以及offset值。View将根据这些数据去计算出需要几个小刻度和几个长刻度，和每个长刻度上面显示的数值。
+- 指针可以随意的定制。
+- 当滑动停止后，刻度尺会根据四舍五入将距离指针最近的长刻度滑动到指针的位置。
+- 支持范围越界回弹。
+- 支持设置默认值。
 
 ![](https://raw.githubusercontent.com/WangcWj/image-folder/master/scrollruler.gif)
